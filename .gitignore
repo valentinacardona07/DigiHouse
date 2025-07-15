@@ -1,0 +1,10 @@
+*.vcd
+*.vvp
+*.log
+*.out
+sim
+*.fst
+*.gtkw
+*.exe
+*.sav
+/test_output/

@@ -1,0 +1,27 @@
+<<<<<<< HEAD
+*.vcd
+=======
+# Archivos de simulación
+*.vcd
+*.vvp
+*.log
+*.out
+sim
+*.fst
+*.gtkw
+*.exe
+
+# GTKWave config files
+*.sav
+
+# Archivos temporales de Icarus Verilog
+*.o
+*.bin
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Carpeta de pruebas opcional
+/test_output/
+>>>>>>> 4e0fb24 (primer archivo StepperControl)
