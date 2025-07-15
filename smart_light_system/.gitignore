@@ -1,0 +1,8 @@
+*.vcd
+*.vvp
+*.log
+*.out
+sim
+*.sav
+*.fst
+*.gtkw
