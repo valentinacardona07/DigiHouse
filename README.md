@@ -57,7 +57,7 @@ Controlador de motor paso a paso 28BYJ-48 utilizando secuencia **half-step** y d
 
 ## 📚 Licencia y Autoría
 
-> Proyecto académico y personal desarrollado por **Samuel**  
+> Proyecto académico y personal desarrollado por **Valentina Cardona, Daniel Ramírez y Samuel Miranda**  
 > Ingeniería Electrónica – Colombia 🇨🇴  
 > Licencia: MIT (libre para uso académico y profesional)
 
