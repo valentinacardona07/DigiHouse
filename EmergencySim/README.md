@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-# 🚨 Proyecto: Emergency System en Verilog
-
-Este proyecto implementa un sistema digital de emergencia, diseñado para activar alertas, luces, desbloqueo de puertas y llamada de auxilio, todo con protección por flanco y sensores.
-=======
-# 🔄 Proyecto: Control de Motor Paso a Paso en Verilog
 
 Este proyecto implementa el control digital de un **motor paso a paso 28BYJ-48** utilizando un **driver ULN2003** y una secuencia **half-step de 8 pasos**.
 >>>>>>> 4e0fb24 (primer archivo StepperControl)
