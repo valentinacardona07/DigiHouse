@@ -1,73 +1,55 @@
-module Lab3digital1 (
-    input wire clk,            // Reloj de 50 MHz
-    input wire reset_n,        // Reset activo en bajo
-    input wire panic_btn_n,    // Botón de pánico activo en bajo
-    input wire danger_sense,   // Sensor de peligro activo en alto
-    output reg alarm,          // Zumbador
-    output reg alert_light,    // LED de alerta
-    output reg door_unlock,    // Relé para puerta
-    output reg call_help       // Comunicación
+module alarma (
+    input wire clk,              // Reloj del sistema (50 MHz)
+    input wire reset,            // Botón para apagar la alarma (activo en alto)
+    input wire btn_activate,     // Botón para activar alarma
+    input wire smoke_detected,   // Sensor de humo
+    output wire buzzer,          // Buzzer activo en bajo
+    output wire led_alert        // LED activo en bajo (parpadea)
 );
-
-    // Temporizador de activación por pánico
-    localparam integer PANIC_THRESHOLD = 100_000_000; // 2 segundos @ 50MHz
-    localparam integer ALARM_HOLD_TIME = 500_000_000; // 10 segundos @ 50MHz
-
-    reg [26:0] panic_counter = 0;
-    reg [28:0] alarm_hold_counter = 0;
 
     reg alarm_active = 0;
 
-    wire panic_pressed = (panic_btn_n == 1'b0);
-    wire reset_pressed = (reset_n == 1'b0);
+    // Para detección de flanco
+    reg btn_prev = 0;
+    reg smoke_prev = 0;
+    reg reset_prev = 0;
 
+    // Registro para parpadeo
+    reg [25:0] blink_counter = 0;  // 26 bits para contar hasta 50 millones
+    reg led_blink = 0;
+
+    // === LÓGICA DE ALARMA ===
     always @(posedge clk) begin
-        if (!reset_n) begin
-            panic_counter <= 0;
-            alarm_hold_counter <= 0;
+        // Flancos
+        if (reset && !reset_prev)
             alarm_active <= 0;
-        end else begin
-            if (!alarm_active) begin
-                if (panic_pressed) begin
-                    if (panic_counter < PANIC_THRESHOLD)
-                        panic_counter <= panic_counter + 1;
-                    else begin
-                        alarm_active <= 1;  // Activar alarma tras 2s
-                        alarm_hold_counter <= 0;
-                    end
-                end else begin
-                    panic_counter <= 0;  // Botón liberado antes de tiempo
-                end
+        else if ((btn_activate && !btn_prev) || (smoke_detected && !smoke_prev))
+            alarm_active <= 1;
+
+        btn_prev   <= btn_activate;
+        smoke_prev <= smoke_detected;
+        reset_prev <= reset;
+    end
+
+    // === PARPADEO DEL LED ===
+    always @(posedge clk) begin
+        if (alarm_active) begin
+            // Contador para parpadeo (50M ciclos = 1 segundo)
+            if (blink_counter >= 2_500_000) begin
+                blink_counter <= 0;
+                led_blink <= ~led_blink;
             end else begin
-                // ALARMA ACTIVA
-                if (reset_pressed && danger_sense == 0) begin
-                    alarm_active <= 0;
-                    panic_counter <= 0;
-                    alarm_hold_counter <= 0;
-                end else begin
-                    // Mantenemos la alarma durante 10 segundos
-                    if (alarm_hold_counter < ALARM_HOLD_TIME)
-                        alarm_hold_counter <= alarm_hold_counter + 1;
-                    else if (danger_sense == 0)
-                        alarm_active <= 0;
-                end
+                blink_counter <= blink_counter + 1;
             end
+        end else begin
+            // Reiniciar cuando no hay alarma
+            blink_counter <= 0;
+            led_blink <= 0;
         end
     end
 
-    // Salidas del sistema
-    always @(*) begin
-        if (alarm_active) begin
-            alarm       = 1;
-            alert_light = 1;
-            door_unlock = 1;
-            call_help   = 1;
-        end else begin
-            alarm       = 0;
-            alert_light = 0;
-            door_unlock = 0;
-            call_help   = 0;
-        end
-    end
+    // === SALIDAS ACTIVAS EN BAJO ===
+    assign buzzer    = ~alarm_active;         // Siempre encendido si alarma activa
+    assign led_alert = ~(alarm_active && led_blink); // Parpadea mientras haya alarma
 
 endmodule
