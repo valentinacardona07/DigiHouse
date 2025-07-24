@@ -2,57 +2,60 @@
 
 module tb_Emergency_System;
 
+    // Señales internas
     reg clk = 0;
     reg reset = 0;
-    reg panic_btn = 0;
-    reg danger_sense = 0;
+    reg btn_activate = 0;
+    reg smoke_detected = 0;
+    wire buzzer;
+    wire led_alert;
 
-    wire alarm, alert_light, door_unlock, call_help;
-
+    // Instancia del módulo bajo prueba (UUT)
     Emergency_System uut (
         .clk(clk),
         .reset(reset),
-        .panic_btn(panic_btn),
-        .danger_sense(danger_sense),
-        .alarm(alarm),
-        .alert_light(alert_light),
-        .door_unlock(door_unlock),
-        .call_help(call_help)
+        .btn_activate(btn_activate),
+        .smoke_detected(smoke_detected),
+        .buzzer(buzzer),
+        .led_alert(led_alert)
     );
 
-    // Clock: 50 MHz = 20 ns
+    // Generador de reloj (50 MHz -> periodo = 20ns)
     always #10 clk = ~clk;
 
     initial begin
-        $dumpfile("emergency_system.vcd"); // GTKWave
+        $display("Inicio de simulación");
+        $dumpfile("Emergency_System.vcd");
         $dumpvars(0, tb_Emergency_System);
 
-        // Reset
+        // 🟢 Etapa 0: Sistema inactivo
+        #100;
+
+        // 🟡 Etapa 1: Presionar botón de activación (flanco)
+        btn_activate = 1;
+        #40;
+        btn_activate = 0;
+        #500;
+
+        // 🔴 Etapa 2: Reset manual
         reset = 1;
-        #100;
-        reset = 0;
-
-        // Trigger panic button (simulate rising edge)
-        #100;
-        panic_btn = 1;
         #20;
-        panic_btn = 0;
+        reset = 0;
+        #500;
 
-        // Let it run through EMERGENCY → POST_EMERGENCY → INACTIVE
-        #2_000_000; // Wait ~40ms
-        danger_sense = 1;  // Activate danger
-        #1_000_000;
-        danger_sense = 0;  // Clear danger
-        #10_000_000;
+        // 🔥 Etapa 3: Activación por humo (sensor)
+        smoke_detected = 1;
+        #30;
+        smoke_detected = 0;
+        #1000;
 
-        // Trigger again with danger_sense input only
-        #1_000_000;
-        danger_sense = 1;
-        #2_000_000;
-        danger_sense = 0;
+        // 🔁 Etapa 4: Otro reset mientras NO hay humo
+        reset = 1;
+        #20;
+        reset = 0;
+        #300;
 
-        #20_000_000;
-
+        $display("Fin de simulación");
         $finish;
     end
 

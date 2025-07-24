@@ -1,4 +1,4 @@
-module alarma (
+module Emergency_System (
     input wire clk,              // Reloj del sistema (50 MHz)
     input wire reset,            // Botón para apagar la alarma (activo en alto)
     input wire btn_activate,     // Botón para activar alarma
