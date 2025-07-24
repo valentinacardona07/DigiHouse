@@ -1,69 +1,76 @@
-module TopModule (
-    input wire clk,
-    input wire reset_n,
+module TopModule(
+    input wire clk,                  // Reloj de 50 MHz
+    input wire reset_n,             // Reset global activo en bajo
 
-    // Emergency system inputs
-    input wire panic_btn,
-    input wire danger_sense,
+    // Emergency System Inputs
+    input wire panic_btn,           // Botón de pánico (activo en alto)
+    input wire smoke_detected,      // Sensor de humo (activo en alto)
 
-    // Motor inputs
+    // Smart Alarm PIR
+    input wire pir1,
+    input wire pir2,
+
+    // Stepper Control
     input wire btn_Up,
     input wire stop_Up,
     input wire btn_Down,
     input wire stop_Down,
 
-    // PIRs
-    input wire pir_input_1,
-    input wire pir_input_2,
+    // Servo Presence Detection
+    input wire presence_1,
+    input wire presence_2,
 
-    // OUTPUTS
-
-    // Emergency outputs
-    output wire alarm,
-    output wire alert_light,
-    output wire door_unlock,
-    output wire call_help,
-
-    // Motor output
-    output wire [3:0] step_out,
-
-    // PIR LEDs
-    output wire led_output_1,
-    output wire led_output_2
+    // Outputs
+    output wire alarm_buzzer,
+    output wire led_alert,
+    output wire led_pir1,
+    output wire led_pir2,
+    output wire [3:0] stepper_out,
+    output wire servo_pwm1,
+    output wire servo_pwm2
 );
 
-    wire reset = ~reset_n;  // Activo en alto para Emergency_System
-
-    // 1. Emergency System
-    Emergency_System emergency_unit (
+    // ────────────────────────────────────────
+    // 🔔 Módulo de Emergencia
+    Emergency_System emergency_inst (
         .clk(clk),
-        .reset(reset),
-        .panic_btn(panic_btn),
-        .danger_sense(danger_sense),
-        .alarm(alarm),
-        .alert_light(alert_light),
-        .door_unlock(door_unlock),
-        .call_help(call_help)
+        .reset(reset_n),
+        .btn_activate(panic_btn),
+        .smoke_detected(smoke_detected),
+        .buzzer(alarm_buzzer),
+        .led_alert(led_alert)
     );
 
-    // 2. Stepper Control
-    StepperControl motor_unit (
+    // ────────────────────────────────────────
+    // 👀 Módulo de Sensores PIR
+    SmartAlarmSystem pir_alarms (
+        .clk(clk),
+        .reset_n(reset_n),
+        .pir_input_1(pir1),
+        .pir_input_2(pir2),
+        .led_output_1(led_pir1),
+        .led_output_2(led_pir2)
+    );
+
+    // ────────────────────────────────────────
+    // 🌀 Control del Motor Paso a Paso
+    StepperControl stepper_inst (
         .clk(clk),
         .btn_Up(btn_Up),
         .stop_Up(stop_Up),
         .btn_Down(btn_Down),
         .stop_Down(stop_Down),
-        .step_out(step_out)
+        .step_out(stepper_out)
     );
 
-    // 3. PIRs Smart Alarm
-    SmartAlarmSystem pir_unit (
+    // ────────────────────────────────────────
+    // 🚪 Servo doble (puerta)
+    servo_principal dual_servo (
         .clk(clk),
-        .reset_n(reset_n),
-        .pir_input_1(pir_input_1),
-        .pir_input_2(pir_input_2),
-        .led_output_1(led_output_1),
-        .led_output_2(led_output_2)
+        .presence_1(presence_1),
+        .presence_2(presence_2),
+        .PWM1(servo_pwm1),
+        .PWM2(servo_pwm2)
     );
 
 endmodule
