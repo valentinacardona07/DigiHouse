@@ -1,4 +1,4 @@
-module Lab3digital1 (
+module Emergency_System.v (
     input wire clk,            // Reloj de 50 MHz
     input wire reset_n,        // Reset activo en bajo
     input wire panic_btn_n,    // Botón de pánico activo en bajo
