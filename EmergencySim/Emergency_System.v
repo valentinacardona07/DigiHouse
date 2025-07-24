@@ -1,4 +1,4 @@
-module Emergency_System.v (
+module Lab3digital1 (
     input wire clk,            // Reloj de 50 MHz
     input wire reset_n,        // Reset activo en bajo
     input wire panic_btn_n,    // Botón de pánico activo en bajo
@@ -9,40 +9,53 @@ module Emergency_System.v (
     output reg call_help       // Comunicación
 );
 
-   
-    localparam integer PANIC_THRESHOLD = 100_000_000; // 2000 ms @ 50 MHz
+    // Temporizador de activación por pánico
+    localparam integer PANIC_THRESHOLD = 100_000_000; // 2 segundos @ 50MHz
+    localparam integer ALARM_HOLD_TIME = 500_000_000; // 10 segundos @ 50MHz
 
-    reg [23:0] panic_counter = 0;
+    reg [26:0] panic_counter = 0;
+    reg [28:0] alarm_hold_counter = 0;
+
     reg alarm_active = 0;
 
-    wire panic_pressed = (panic_btn_n == 0);
-    wire reset_pressed = (reset_n == 0);
+    wire panic_pressed = (panic_btn_n == 1'b0);
+    wire reset_pressed = (reset_n == 1'b0);
 
-    // FSM
     always @(posedge clk) begin
         if (!reset_n) begin
             panic_counter <= 0;
+            alarm_hold_counter <= 0;
             alarm_active <= 0;
         end else begin
             if (!alarm_active) begin
                 if (panic_pressed) begin
                     if (panic_counter < PANIC_THRESHOLD)
                         panic_counter <= panic_counter + 1;
-                    else
-                        alarm_active <= 1;  // Activar alarma tras 200 ms
+                    else begin
+                        alarm_active <= 1;  // Activar alarma tras 2s
+                        alarm_hold_counter <= 0;
+                    end
                 end else begin
-                    panic_counter <= 0;
+                    panic_counter <= 0;  // Botón liberado antes de tiempo
                 end
             end else begin
-                if (reset_pressed && !danger_sense) begin
+                // ALARMA ACTIVA
+                if (reset_pressed && danger_sense == 0) begin
                     alarm_active <= 0;
                     panic_counter <= 0;
+                    alarm_hold_counter <= 0;
+                end else begin
+                    // Mantenemos la alarma durante 10 segundos
+                    if (alarm_hold_counter < ALARM_HOLD_TIME)
+                        alarm_hold_counter <= alarm_hold_counter + 1;
+                    else if (danger_sense == 0)
+                        alarm_active <= 0;
                 end
             end
         end
     end
 
-    // Salidas combinacionales
+    // Salidas del sistema
     always @(*) begin
         if (alarm_active) begin
             alarm       = 1;
