@@ -1,4 +1,4 @@
-module SmartAlarmSystem (
+module smart_light_system (
     input wire clk,
     input wire reset_n,
 
