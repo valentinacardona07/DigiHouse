@@ -9,8 +9,8 @@ module Lab3digital1 (
     output reg call_help       // Comunicación
 );
 
-    // ?? Para simulación, umbral reducido (~200 ms)
-    localparam integer PANIC_THRESHOLD = 100_000_000; // 200 ms @ 50 MHz
+   
+    localparam integer PANIC_THRESHOLD = 100_000_000; // 2000 ms @ 50 MHz
 
     reg [23:0] panic_counter = 0;
     reg alarm_active = 0;
